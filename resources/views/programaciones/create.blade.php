@@ -38,26 +38,42 @@
             <div class="form-group form-group-full">
                 <label for="id_curso">Curso</label>
 
+                
                 <select
-                    id="id_curso"
-                    name="id_curso"
-                    required
-                >
-                    <option value="">
-                        Selecciona un curso
-                    </option>
+    id="id_curso"
+    name="id_curso"
+    required
+>
+    <option value="">
+        Selecciona un curso
+    </option>
 
-                    @foreach($cursos as $curso)
-                        <option
-                            value="{{ $curso->id_curso }}"
-                            @selected(
-                                old('id_curso') == $curso->id_curso
-                            )
-                        >
-                            {{ $curso->nombre }}
-                        </option>
-                    @endforeach
-                </select>
+    @foreach($cursos as $curso)
+
+        @php
+            $duracion = (int) filter_var($curso->duracion, FILTER_SANITIZE_NUMBER_INT);
+            $completo = $curso->programaciones_count >= $duracion;
+        @endphp
+
+        <option
+            value="{{ $curso->id_curso }}"
+            @selected(old('id_curso') == $curso->id_curso)
+            @disabled($completo)
+        >
+            {{ $curso->nombre }}
+
+            @if($completo)
+                🔒 ({{ $curso->programaciones_count }} de {{ $duracion }} sesiones)
+            @else
+                ({{ $curso->programaciones_count }} de {{ $duracion }} sesiones)
+            @endif
+
+        </option>
+
+    @endforeach
+
+</select>
+
             </div>
 
             <div class="form-group form-group-full">

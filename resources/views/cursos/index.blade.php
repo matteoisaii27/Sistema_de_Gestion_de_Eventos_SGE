@@ -27,6 +27,24 @@
 
 </div>
 
+@if(session('success'))
+    <div
+        class="alert alert-success"
+        role="alert"
+    >
+        {{ session('success') }}
+    </div>
+@endif
+
+@if(session('error'))
+    <div
+        class="alert alert-error"
+        role="alert"
+    >
+        {{ session('error') }}
+    </div>
+@endif
+
 <section class="card">
 
     <div class="table-toolbar">
