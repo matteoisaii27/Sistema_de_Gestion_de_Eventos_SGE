@@ -1,0 +1,34 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+{
+    Schema::table('inscripciones', function (Blueprint $table) {
+        $table->timestamp('recordatorio_7_dias_enviado_at')
+            ->nullable()
+            ->after('estado');
+
+        $table->timestamp('recordatorio_1_dia_enviado_at')
+            ->nullable()
+            ->after('recordatorio_7_dias_enviado_at');
+    });
+}
+
+public function down(): void
+{
+    Schema::table('inscripciones', function (Blueprint $table) {
+        $table->dropColumn([
+            'recordatorio_7_dias_enviado_at',
+            'recordatorio_1_dia_enviado_at',
+        ]);
+    });
+}
+};
