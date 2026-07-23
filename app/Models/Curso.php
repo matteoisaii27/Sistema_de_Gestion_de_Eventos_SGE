@@ -11,27 +11,29 @@ class Curso extends Model
     protected $fillable = [
         'nombre',
         'descripcion',
+        'imagen',
         'duracion',
         'cupo_maximo',
         'estado',
         'fecha_inicio',
         'fecha_fin',
     ];
-    public function programaciones()
-{
-    return $this->hasMany(
-        ProgramacionCurso::class,
-        'id_curso',
-        'id_curso'
-    );
-}
-public function inscripciones()
-{
-    return $this->hasMany(
-        Inscripcion::class,
-        'id_curso',
-        'id_curso'
-    );
-}
 
+    public function programaciones()
+    {
+        return $this->hasMany(
+            ProgramacionCurso::class,
+            'id_curso',
+            'id_curso'
+        );
+    }
+
+    public function inscripciones()
+    {
+        return $this->hasMany(
+            Inscripcion::class,
+            'id_curso',
+            'id_curso'
+        );
+    }
 }

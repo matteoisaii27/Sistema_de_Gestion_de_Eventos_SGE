@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Configuracion;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ConfiguracionController extends Controller
 {
@@ -37,12 +38,35 @@ class ConfiguracionController extends Controller
             'mensaje_confirmacion' => 'nullable|string|max:1000',
             'mensaje_recordatorio' => 'nullable|string|max:1000',
             'inscripciones_habilitadas' => 'nullable|boolean',
+
+            'imagen_principal' =>
+                'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
 
         $datos['inscripciones_habilitadas'] =
             $request->boolean('inscripciones_habilitadas');
 
-        $configuracion->update($datos);
+        if ($request->hasFile('imagen_principal')) {
+
+            $imagenAnterior = $configuracion->imagen_principal;
+
+            $datos['imagen_principal'] = $request
+                ->file('imagen_principal')
+                ->store('jardin', 'public');
+
+            $configuracion->update($datos);
+
+            if ($imagenAnterior) {
+                Storage::disk('public')->delete($imagenAnterior);
+            }
+
+        } else {
+
+            unset($datos['imagen_principal']);
+
+            $configuracion->update($datos);
+
+        }
 
         return redirect()
             ->route('configuracion.index')

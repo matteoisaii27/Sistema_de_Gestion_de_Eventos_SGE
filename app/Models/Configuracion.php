@@ -18,6 +18,7 @@ class Configuracion extends Model
         'mensaje_confirmacion',
         'mensaje_recordatorio',
         'inscripciones_habilitadas',
+        'imagen_principal',
     ];
 
     protected $casts = [

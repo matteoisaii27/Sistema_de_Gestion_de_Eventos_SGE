@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Curso;
 use App\Models\ProgramacionCurso;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class CursoController extends Controller
@@ -26,12 +27,19 @@ class CursoController extends Controller
         $datos = $request->validate([
             'nombre' => 'required|string|max:150',
             'descripcion' => 'required|string',
+            'imagen' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'duracion' => 'required|string|max:100',
             'cupo_maximo' => 'required|integer|min:1',
             'estado' => 'required|in:activo,inactivo',
             'fecha_inicio' => 'nullable|date',
             'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
         ]);
+
+        if ($request->hasFile('imagen')) {
+            $datos['imagen'] = $request
+                ->file('imagen')
+                ->store('cursos', 'public');
+        }
 
         Curso::create($datos);
 
@@ -50,6 +58,7 @@ class CursoController extends Controller
         $datos = $request->validate([
             'nombre' => 'required|string|max:150',
             'descripcion' => 'required|string',
+            'imagen' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'duracion' => 'required|string|max:100',
             'cupo_maximo' => 'required|integer|min:1',
             'estado' => 'required|in:activo,inactivo',
@@ -74,7 +83,23 @@ class CursoController extends Controller
             ]);
         }
 
-        $curso->update($datos);
+        if ($request->hasFile('imagen')) {
+            $imagenAnterior = $curso->imagen;
+
+            $datos['imagen'] = $request
+                ->file('imagen')
+                ->store('cursos', 'public');
+
+            $curso->update($datos);
+
+            if ($imagenAnterior) {
+                Storage::disk('public')->delete($imagenAnterior);
+            }
+        } else {
+            unset($datos['imagen']);
+
+            $curso->update($datos);
+        }
 
         return redirect()
             ->route('cursos.index')
@@ -97,7 +122,13 @@ class CursoController extends Controller
                 );
         }
 
+        $imagenCurso = $curso->imagen;
+
         $curso->delete();
+
+        if ($imagenCurso) {
+            Storage::disk('public')->delete($imagenCurso);
+        }
 
         return redirect()
             ->route('cursos.index')

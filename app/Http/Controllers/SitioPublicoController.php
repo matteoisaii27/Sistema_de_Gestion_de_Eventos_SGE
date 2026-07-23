@@ -18,22 +18,63 @@ class SitioPublicoController extends Controller
     public function inicio()
 {
     $proximosCursos = Curso::where('estado', 'activo')
-        ->whereDate('fecha_inicio', '>', now()->toDateString())
-        ->orderBy('fecha_inicio')
+        ->whereHas('programaciones', function ($consulta) {
+            $consulta->whereDate(
+                'fecha',
+                '>=',
+                now()->toDateString()
+            );
+        })
+        ->withMin(
+            [
+                'programaciones as proxima_fecha' => function ($consulta) {
+                    $consulta->whereDate(
+                        'fecha',
+                        '>=',
+                        now()->toDateString()
+                    );
+                }
+            ],
+            'fecha'
+        )
+        ->orderBy('proxima_fecha')
         ->limit(3)
         ->get();
 
+    $configuracion = Configuracion::first();
+
     return view(
         'publico.inicio',
-        compact('proximosCursos')
+        compact(
+            'proximosCursos',
+            'configuracion'
+        )
     );
 }
 
     public function cursos()
 {
     $cursos = Curso::where('estado', 'activo')
-        ->whereDate('fecha_inicio', '>', now()->toDateString())
-        ->orderBy('fecha_inicio')
+        ->whereHas('programaciones', function ($consulta) {
+            $consulta->whereDate(
+                'fecha',
+                '>=',
+                now()->toDateString()
+            );
+        })
+        ->withMin(
+            [
+                'programaciones as proxima_fecha' => function ($consulta) {
+                    $consulta->whereDate(
+                        'fecha',
+                        '>=',
+                        now()->toDateString()
+                    );
+                }
+            ],
+            'fecha'
+        )
+        ->orderBy('proxima_fecha')
         ->get();
 
     return view(
@@ -77,12 +118,14 @@ class SitioPublicoController extends Controller
 
     public function mostrarInscripcion(Curso $curso)
 {
+    $tieneSesionDisponible = $curso
+        ->programaciones()
+        ->whereDate('fecha', '>=', now()->toDateString())
+        ->exists();
+
     if (
         $curso->estado !== 'activo' ||
-        !$curso->fecha_inicio ||
-        now()->startOfDay()->greaterThanOrEqualTo(
-            \Carbon\Carbon::parse($curso->fecha_inicio)->startOfDay()
-        )
+        !$tieneSesionDisponible
     ) {
         abort(404);
     }
@@ -122,19 +165,19 @@ public function guardarInscripcion(
         abort(404);
     }
 
-     if (
-        !$curso->fecha_inicio ||
-        now()->startOfDay()->greaterThanOrEqualTo(
-            Carbon::parse($curso->fecha_inicio)->startOfDay()
-        )
-    ) {
-        return redirect()
-            ->route('publico.detalle', $curso)
-            ->withErrors([
-                'inscripcion' =>
-                    'Las inscripciones para este curso ya finalizaron.'
-            ]);
-    }
+     $tieneSesionDisponible = $curso
+    ->programaciones()
+    ->whereDate('fecha', '>=', now()->toDateString())
+    ->exists();
+
+if (!$tieneSesionDisponible) {
+    return redirect()
+        ->route('publico.detalle', $curso)
+        ->withErrors([
+            'inscripcion' =>
+                'Este curso ya no tiene sesiones disponibles.'
+        ]);
+}
 
     $configuracion = Configuracion::first();
 

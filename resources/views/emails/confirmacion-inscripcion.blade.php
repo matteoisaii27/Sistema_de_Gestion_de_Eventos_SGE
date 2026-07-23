@@ -46,7 +46,7 @@
                 <tr>
                     <td style="
                         padding: 32px;
-                        background-color: #104f42;
+                        background-color: #2f9e44;
                         color: #ffffff;
                     ">
                         <p style="
